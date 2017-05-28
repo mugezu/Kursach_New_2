@@ -12,7 +12,8 @@ public class Polynom {
     private char[] binom;
     private String poly = null;
     private Set<Character> set = new HashSet<Character>();
-//конструктор, текстовую строку в формат полинома
+
+    //конструктор, текстовую строку в формат полинома
     public Polynom(String str, int st) {
         Collections.addAll(set, 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H');
         poly = str;
@@ -41,10 +42,46 @@ public class Polynom {
         }
     }
 
-    public int getJ() { return j; }
-    public long getC() { return c; }
-    public int getExp() { return exp; }
-    public Character getT() { return t; }
-    public String toString() {return poly;}
-    public char[] getBinom() {	return binom; }
+    public int getJ() {
+        return j;
+    }
+
+    public long getC() {
+        return c;
+    }
+
+    public int getExp() {
+        return exp;
+    }
+
+    public Character getT() {
+        return t;
+    }
+
+    public String toString() {
+        return poly;
+    }
+
+    public char[] getBinom() {
+        return binom;
+    }
+
+    private void setBinom(char[] binom) {
+        this.binom = binom;
+    }
+
+    public Polynom getSop() {
+        Polynom p = this;
+        p.setBinom((this.cover(this.getBinom())));
+        return p;
+    }
+
+    private char[] cover(char[] binom) {
+        char[] a = new char[binom.length];
+        for (int i = 0; i < binom.length; i++) {
+            a[i] = binom[binom.length - 1 - i];
+        }
+        return a;
+
+    }
 }

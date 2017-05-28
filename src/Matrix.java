@@ -20,8 +20,6 @@ public class Matrix {
     private int T;
 
     public Matrix(String name, int sizeRow, int sizeCol) {
-
-
         System.out.println("in constructor [" + sizeRow + "][" + sizeCol + "]");
         this.n = name;
         this.sr = sizeRow;
@@ -48,7 +46,6 @@ public class Matrix {
         System.out.println("Constructor is almost done [" + this.sr + "][" + this.sc + "]");
     }
 
-
     public int[][] getMatr() {
         return matr;
     }
@@ -67,7 +64,6 @@ public class Matrix {
                 l.get(i * sc + j).setText(Integer.toString(matr[i][j]));
             }
         }
-
     }
 
     public void show() {
@@ -94,7 +90,7 @@ public class Matrix {
         matr = new int[sr][sc];
 
         char[] temp = p.getBinom();
-        System.out.println("polynom (" + p.getJ() + ")");
+        System.out.print("polynom (" + p.getJ() + ")");
         for (int i = 0; i < temp.length; i++) {
             System.out.print(temp[i] + " ");
         }
@@ -104,7 +100,6 @@ public class Matrix {
         for (int i = 1; i < temp.length; i++) {
             firstRow[i - 1] = Character.getNumericValue((temp[i]));
         }
-
         if (top == true) {
             matr[0] = firstRow;
             for (int i = 1; i < matr.length; i++) {

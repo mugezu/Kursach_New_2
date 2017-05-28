@@ -42,6 +42,7 @@ public class Interface {
     private JCheckBox sopPoly = new JCheckBox();
     private JCheckBox privPoly = new JCheckBox();
 
+
     // Матрицы
     private Matrix A;
     private int[][] S;
@@ -53,7 +54,12 @@ public class Interface {
     private JPanel Spanel;
     private ArrayList<JLabel> Sl;
     private int T;
+    private int T_exs;
     private StringBuffer MSRCondition;
+    private int J;
+    private int I;
+    private int[] i_sequence;
+    private int[] j_sequence;
 
     /**
      * В конструкторе происходит создание интерфейса, а также его запуск и
@@ -63,14 +69,22 @@ public class Interface {
         TMP = new Matrix("nomen", 1, 1);
         JTextField xField = new JTextField(5);
         JTextField yField = new JTextField(5);
+        JTextField iField = new JTextField(5);
+        JTextField jField = new JTextField(5);
 
-        JPanel myPanel = new JPanel(new GridLayout(2, 1));
+        JPanel myPanel = new JPanel(new GridLayout(3, 1));
         JPanel Panel = new JPanel();
 
         Panel.add(new JLabel("Введите степени полиномов A и B:"));
         Panel.add(xField);
         Panel.add(Box.createHorizontalStrut(15)); // a spacer
         Panel.add(yField);
+        JPanel Panel2 = new JPanel();
+
+        Panel2.add(new JLabel("Введите строку и столбец матрицы:"));
+        Panel2.add(iField);
+        Panel2.add(Box.createHorizontalStrut(15)); // a spacer
+        Panel2.add(jField);
         JPanel panelCheck = new JPanel();
         panelCheck.add(new JLabel("Сопряженные полиномы"));
         panelCheck.add(sopPoly);
@@ -78,6 +92,7 @@ public class Interface {
         panelCheck.add(new JLabel("Приметивные полиномы"));
         panelCheck.add(privPoly);
         myPanel.add(Panel);
+        myPanel.add(Panel2);
         myPanel.add(panelCheck);
 
         UIManager ui = new UIManager();// Он создает интерфейс
@@ -88,6 +103,7 @@ public class Interface {
         privPoly.setBackground(pict);
         Panel.setBackground(pict);
         panelCheck.setBackground(pict);
+        Panel2.setBackground(pict);
         myPanel.setBackground(pict);
         Object[] options1 = {"Дальше", "Отмена"};
 
@@ -98,9 +114,11 @@ public class Interface {
         if (result == JOptionPane.OK_OPTION) {
             n = Integer.parseInt(xField.getText());
             m = Integer.parseInt(yField.getText());
+            I = Integer.parseInt(iField.getText());
+            J = Integer.parseInt(jField.getText());
         }
 
-        if (result != JOptionPane.OK_OPTION || n > 11 || m > 11 || n < 1 || m < 1) {
+        if (result != JOptionPane.OK_OPTION || n > 11 || m > 11 || n < 1 || m < 1 || I >= n || J >= m || I < 0 || J < 0) {
             JOptionPane.showMessageDialog(frame, "Введите степень от 1 до 11", "Ошибка!", JOptionPane.PLAIN_MESSAGE);
             System.exit(0);
         }
@@ -137,20 +155,25 @@ public class Interface {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
-
         frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.LINE_AXIS));
 
-        // Создание боксов с выбором полинома
         comboBox = new JComboBox<Polynom>();
         comboBox3 = new JComboBox<Polynom>();
         comboBox.setForeground(pict);
         comboBox3.setForeground(pict);
+        System.out.println(privPoly.isSelected());
         for (Polynom p : UmnMatr.read()) {
             if (p.getExp() == n) {
-                comboBox.addItem(p);
+                if (privPoly.isSelected() == true) {
+                    if (p.getT() == 'H' || p.getT() == 'E' || p.getT() == 'F' || p.getT() == 'G')
+                        comboBox.addItem(p);
+                } else comboBox.addItem(p);
             }
             if (p.getExp() == m) {
-                comboBox3.addItem(p);
+                if (privPoly.isSelected() == true) {
+                    if (p.getT() == 'H' || p.getT() == 'E' || p.getT() == 'F' || p.getT() == 'G')
+                        comboBox3.addItem(p);
+                } else comboBox3.addItem(p);
             }
         }
 
@@ -201,8 +224,17 @@ public class Interface {
         // Создание матриц
         System.out.println("Setting matrix A [" + n + "][" + n + "]");
         A = new Matrix("A", n, n);
-        // Добавление полинома в бокс выбора
-        A.setPol((Polynom) comboBox.getSelectedItem(), true);
+        B = new Matrix("B", m, m);
+
+        if (sopPoly.isSelected() == true) {
+            Polynom p = (Polynom) comboBox.getSelectedItem();
+            A.setPol(p.getSop(), true);
+            p = (Polynom) comboBox3.getSelectedItem();
+            B.setPol(p.getSop(), false);
+        } else {
+            A.setPol((Polynom) comboBox.getSelectedItem(), true);
+            B.setPol((Polynom) comboBox3.getSelectedItem(), false);
+        }
         int[][] MTR = A.getMatr();
 
         S = new int[n][m];
@@ -234,8 +266,6 @@ public class Interface {
         Sframe.getContentPane().add(Spanel);
         Sframe.pack();
 
-        B = new Matrix("B", m, m);
-        B.setPol((Polynom) comboBox3.getSelectedItem(), false);
 
         T = A.T() * B.T();
         System.out.println("S PERIOD: " + T);
@@ -262,7 +292,6 @@ public class Interface {
 
         frame.getContentPane().setLayout(new BorderLayout());
         frame.getContentPane().add(panel, BorderLayout.NORTH);
-        //  frame.getContentPane().add(new JTextArea(8, 20), BorderLayout.CENTER);
         frame.pack();
     }
 
@@ -274,17 +303,6 @@ public class Interface {
 
         public ButtonEventListener(Matrix ma) {
             this.m = ma;
-            System.out.println("MATRIX[" + ma.getMatr().length + "][" + ma.getMatr()[0].length + "]: ");
-
-            for (int i = 0; i < ma.getMatr().length; i++) {
-                for (int j = 0; j < ma.getMatr()[0].length; j++) {
-                    System.out.print("ma[" + i + "][" + j + "]: ");
-                    System.out.println(ma.getMatr()[i][j]);
-                }
-                System.out.println();
-            }
-            System.out.println();
-            System.out.println("BUT");
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -377,36 +395,43 @@ public class Interface {
      */
     private class AkfEventListener implements ActionListener {
         int[][] s1 = new int[n][m];
-        int[] pr = new int[T];
-        double[] res = new double[T];
-        int k = 0;
-        int i = 0;
 
         public void actionPerformed(ActionEvent e) {
-
+            int k = 0;
+            int i = 0;
+            if (T_exs == 0) {
+                JOptionPane.showConfirmDialog(null, "Расчеты не были проведены, нажмите на кнопку " + bP.getText(), "Ошибка", JOptionPane.CLOSED_OPTION);
+                return;
+            }
             for (int ind = 0; ind < n; ind++) {
                 for (int j = 0; j < m; j++) {
                     s1[ind][j] = S[ind][j];
                 }
             }
-            while (i < T) {
+            i_sequence = new int[T_exs];
+            j_sequence = new int[T_exs];
+            System.out.println(Matrix.MatrixToString(A.getMatr()));
+            System.out.println(Matrix.MatrixToString(B.getMatr()));
+            while (i < T_exs) {
                 s1 = UmnMatr.multi(A.getMatr(), s1);
                 s1 = UmnMatr.multi(s1, B.getMatr());
-
                 int dec = 0;
                 for (int j = n - 1; j >= 0; j--) {
-                    dec += s1[j][0] * Math.pow(2, n - j - 1);
+                    dec += s1[j][J];
                 }
-                pr[k] = dec;
-                k++;
+                j_sequence[i] = dec;
+                dec=0;
+                for (int j = m - 1; j >= 0; j--) {
+                    dec += s1[I][j] ;
+                }
+                i_sequence[i] = dec;
                 i++;
             }
-
             // pисуем график
             XYSeries series = new XYSeries(" ");
-
-            for (int i = 0; i < T; i++)
-                series.add(i, akf(i));
+            double[] a = Correlation.calculate(j_sequence);
+            for (int j = 0; j < T_exs; j++)
+                series.add(j, a[j]);
 
             // настройки окна графика
             XYDataset xyDataset = new XYSeriesCollection(series);
@@ -417,16 +442,42 @@ public class Interface {
             frame.getContentPane().add(new ChartPanel(chart));
             frame.setSize(400, 300);
             frame.setVisible(true);
+
+             series = new XYSeries(" ");
+             a = Correlation.calculate(i_sequence);
+            for (int j = 0; j < T_exs; j++)
+                series.add(j, a[j]);
+
+            // настройки окна графика
+             xyDataset = new XYSeriesCollection(series);
+             chart = ChartFactory.createXYLineChart("АКФ", "t", "R(t)", xyDataset, PlotOrientation.VERTICAL,
+                    true, true, true);
+             frame = new JFrame("АКФ");
+            // Помещаем график на фрейм
+            frame.getContentPane().add(new ChartPanel(chart));
+            frame.setSize(400, 300);
+            frame.setVisible(true);
+
+            series = new XYSeries(" ");
+            a = Correlation.calculate(i_sequence,j_sequence);
+            for (int j = 0; j < T_exs; j++)
+                series.add(j, a[j]);
+
+            // настройки окна графика
+            xyDataset = new XYSeriesCollection(series);
+            chart = ChartFactory.createXYLineChart("ВКФ", "t", "R(t)", xyDataset, PlotOrientation.VERTICAL,
+                    true, true, true);
+            frame = new JFrame("АКФ");
+            // Помещаем график на фрейм
+            frame.getContentPane().add(new ChartPanel(chart));
+            frame.setSize(400, 300);
+            frame.setVisible(true);
         }
 
-        private double akf(int i) {
-            res = Correlation.calculate(pr);
-            return res[i];
-        }
 
     }
 
-    private class Akf2EventListener implements ActionListener {
+ /*   private class Akf2EventListener implements ActionListener {
         int[][] s1 = new int[n][m];
         int T = (int) Math.pow(2, n) - 1;
         int[] pr = new int[T];
@@ -468,7 +519,7 @@ public class Interface {
             return res[i];
         }
 
-    }
+    }*/
 
     /// Далее идут обработчии события на боксы выбора. Вытягивают нужный полином
     /// в зависимости от действий пользователя.
@@ -485,7 +536,11 @@ public class Interface {
         }
 
         public void actionPerformed(ActionEvent event) {
-            m.setPol((Polynom) jComboBox.getSelectedItem(), this.top);
+            T_exs=0;
+            Polynom p = (Polynom) jComboBox.getSelectedItem();
+            if (sopPoly.isSelected() == true)
+                m.setPol(p.getSop(), this.top);
+            else m.setPol(p, this.top);
             m.update();
         }
     }
@@ -524,6 +579,7 @@ public class Interface {
     private class PeriodEventListener implements ActionListener {
 
         public void actionPerformed(ActionEvent e) {
+            T = A.T() * B.T();
             String s = "Период:  " + T;
             JOptionPane.showMessageDialog(null, s, "Tеоретический период", JOptionPane.PLAIN_MESSAGE);
         }
@@ -552,6 +608,7 @@ public class Interface {
             } while (!p && k <= T);
             s1 = UmnMatr.multi(A.getMatr(), s1);
             s1 = UmnMatr.multi(s1, B.getMatr());
+            T_exs = k;
             MSRCondition.append(0 + ":" + System.lineSeparator() + Matrix.MatrixToString(s1));
             String s;
             if (!p)
